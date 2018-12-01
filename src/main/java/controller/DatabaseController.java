@@ -1,8 +1,10 @@
 package controller;
 
+import com.mongodb.BasicDBObject;
 import com.mongodb.DB;
 import com.mongodb.MongoClient;
 import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoCursor;
 import com.mongodb.client.MongoDatabase;
 import org.bson.Document;
 
@@ -13,6 +15,7 @@ public class DatabaseController {
     private static final String HOST = "localhost";
     private static final int PORT = 27017;
     private static final String DBNAME = "crayon_db";
+    private static final String USER_COLLECTION = "USER_COLLECTION";
 
     public static String getDBName() {
         return DBNAME;
@@ -42,18 +45,40 @@ public class DatabaseController {
         client.close();
     }
 
-    public static void addNewUser(String username, String password, String email) {
+    public static boolean addNewUser(String username, String password, String email) {
         try {
             MongoClient client = getMongoClient();
-            MongoCollection collection = getMongoCollection("USER_COLLECTION", client);
+            MongoCollection collection = getMongoCollection(USER_COLLECTION, client);
             Document doc = new Document();
-            doc.append("uname", username);
+            doc.append("username", username);
             doc.append("password", password);
             doc.append("email", email);
             collection.insertOne(doc);
+            client.close();
+            return true;
         } catch (UnknownHostException e) {
             e.printStackTrace();
         }
+        return false;
+
+    }
+
+    public static boolean authorizeUser(String username, String password) {
+        try {
+            MongoClient client = getMongoClient();
+            MongoCollection collection = getMongoCollection(USER_COLLECTION, client);
+            BasicDBObject searchQ = new BasicDBObject();
+            searchQ.append("username", username);
+            searchQ.append("password", password);
+            MongoCursor<Document> cursor = collection.find(searchQ).iterator();
+            if (cursor.hasNext()) {
+                return true;
+            }
+        } catch (UnknownHostException e) {
+            e.printStackTrace();
+        }
+        return false;
+
     }
 
     public static void processNewImage() {

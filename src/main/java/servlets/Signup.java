@@ -11,17 +11,19 @@ import javax.servlet.http.HttpServletResponse;
 
 @WebServlet(
         name = "authorize admin",
-        urlPatterns = "/login"
+        urlPatterns = "/sign-up"
 )
-public class Login extends HttpServlet{
+public class Signup extends HttpServlet{
 
     @Override
     public void doPost(HttpServletRequest req, HttpServletResponse res) {
         JsonObject obj = RequestReader.readRequest(req);
-        DatabaseController.addNewUser(obj.get("username").getAsString(),
+        boolean status = DatabaseController.addNewUser(obj.get("username").getAsString(),
                 obj.get("password").getAsString(),
                 obj.get("email").getAsString());
-    }
+        if (status) res.setStatus(HttpServletResponse.SC_OK);
+        else res.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
 
+    }
 
 }
